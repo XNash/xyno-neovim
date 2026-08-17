@@ -26,6 +26,41 @@ return {
 		require("luasnip.loaders.from_vscode").lazy_load()
 		require("fidget").setup({})
 		require("mason").setup()
+
+		-- mason-lspconfig (current version) has no `handlers` option anymore -
+		-- it just installs servers and calls vim.lsp.enable() for each one
+		-- automatically. Per-server capabilities/settings go through the
+		-- native vim.lsp.config() API instead, which deep-merges with
+		-- nvim-lspconfig's own defaults for that server.
+		vim.lsp.config("*", { capabilities = capabilities })
+
+		vim.lsp.config("rust_analyzer", {
+			settings = {
+				["rust-analyzer"] = {
+					-- run clippy instead of plain `cargo check` on save, so
+					-- clippy lints show up as real-time diagnostics
+					check = { command = "clippy" },
+					inlayHints = {
+						typeHints = { enable = true },
+						bindingModeHints = { enable = true },
+						closureReturnTypeHints = { enable = "always" },
+						lifetimeElisionHints = { enable = "skip_trivial" },
+						parameterHints = { enable = true },
+					},
+				},
+			},
+		})
+
+		local ok, mason_registry = pcall(require, "mason-registry")
+		if ok then
+			local ok2, pkg = pcall(mason_registry.get_package, "powershell-editor-services")
+			if ok2 and pkg:is_installed() then
+				vim.lsp.config("powershell_es", {
+					bundle_path = pkg:get_install_path(),
+				})
+			end
+		end
+
 		require("mason-lspconfig").setup({
 			ensure_installed = {
 				"rust_analyzer",
@@ -33,23 +68,17 @@ return {
 				"eslint",
 				"powershell_es",
 			},
-			handlers = {
-				function(server_name) -- default handler
-					require("lspconfig")[server_name].setup({
-						capabilities = capabilities,
-					})
-				end,
+		})
 
-				["powershell_es"] = function()
-					local lspconfig = require("lspconfig")
-					local mason_registry = require("mason-registry")
-					local bundle_path = mason_registry.get_package("powershell-editor-services"):get_install_path()
-					lspconfig.powershell_es.setup({
-						capabilities = capabilities,
-						bundle_path = bundle_path,
-					})
-				end,
-			},
+		-- Enable inlay type hints (inferred variable types, parameter names, etc.)
+		-- for any LSP client that supports them, on attach.
+		vim.api.nvim_create_autocmd("LspAttach", {
+			callback = function(args)
+				local client = vim.lsp.get_client_by_id(args.data.client_id)
+				if client and client:supports_method("textDocument/inlayHint") then
+					vim.lsp.inlay_hint.enable(true, { bufnr = args.buf })
+				end
+			end,
 		})
 
 		local cmp_select = { behavior = cmp.SelectBehavior.Select }
@@ -77,6 +106,21 @@ return {
 		})
 
 		vim.diagnostic.config({
+			virtual_text = {
+				spacing = 4,
+				prefix = "●",
+				source = false, -- keep the inline text short; source shows in the float instead
+			},
+			signs = {
+				text = {
+					[vim.diagnostic.severity.ERROR] = "",
+					[vim.diagnostic.severity.WARN] = "",
+					[vim.diagnostic.severity.INFO] = "",
+					[vim.diagnostic.severity.HINT] = "",
+				},
+			},
+			underline = true,
+			severity_sort = true,
 			float = {
 				focusable = false,
 				style = "minimal",
