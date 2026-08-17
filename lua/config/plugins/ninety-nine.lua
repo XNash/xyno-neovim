@@ -5,7 +5,9 @@ return {
 		local _99 = require("99")
 		_99.setup({
 			provider = _99.Providers.ClaudeCodeProvider,
-			model = "claude-sonnet-4-5",
+			model = "claude-sonnet-5",
+			-- passed straight through to the `claude` CLI invocation
+			provider_extra_args = { "--effort", "medium" },
 		})
 
 		vim.keymap.set("n", "<leader>9s", function()

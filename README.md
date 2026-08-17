@@ -5,6 +5,8 @@ A minimal, from-scratch Neovim config — inspired by [ThePrimeagen's init.lua](
 actually needed: Rust, Node/TypeScript, PowerShell, Flutter/Dart, plus AI via
 [99](https://github.com/ThePrimeagen/99) on Claude Code.
 
+Leader key is `<Space>`.
+
 ## Structure
 
 - `init.lua` — leader key, loads options/lazy/keymaps
@@ -28,3 +30,79 @@ Two plugins are pulled from local clones rather than a git URL and expected at:
 - `~/personal/99` — [ThePrimeagen/99](https://github.com/ThePrimeagen/99)
 
 Clone both before first launch.
+
+## Features
+
+### Navigation
+
+| Key | Action |
+|---|---|
+| `<leader>pf` | Telescope: find files |
+| `<C-p>` | Telescope: git files |
+| `<leader>ps` | Telescope: grep for a string |
+| `<leader>pg` | Telescope: live grep |
+| `<leader>pb` | Telescope: switch buffers |
+| `<leader>a` | Harpoon: add current file |
+| `<C-e>` | Harpoon: quick menu |
+| `<M-1>`–`<M-4>` | Harpoon: jump to pinned file 1–4 |
+| `<leader>pv` | netrw file explorer (`%` new file, `d` new dir, `R` rename, `D` delete) |
+
+### LSP / IDE features
+
+`rust_analyzer`, `vtsls`, `eslint`, `powershell_es` and Dart's `dartls` (via flutter-tools.nvim)
+are wired through Mason with per-server settings layered on nvim-lspconfig's native
+`vim.lsp.config()` defaults (not the old `mason-lspconfig` `handlers` API, which this
+version of the plugin no longer supports).
+
+- Inline diagnostics with gutter icons and virtual text, same idea as RustRover's inline
+  error messages
+- Inlay type hints (inferred types, parameter names) enabled automatically on any client
+  that supports them
+- Rust diagnostics run through **clippy**, not plain `cargo check`
+  (`rust-analyzer.check.command = "clippy"`)
+
+| Key | Action |
+|---|---|
+| `gd` | Go to definition |
+| `K` | Hover |
+| `[d` / `]d` | Next / prev diagnostic |
+| `<leader>vd` | Diagnostic float |
+| `<leader>vca` | Code action |
+| `<leader>vrr` | References |
+| `<leader>vrn` | Rename |
+
+### Formatting
+
+`conform.nvim` formats on save (`rustfmt`, `prettier`, `dart_format`; PowerShell via a
+custom PSScriptAnalyzer-based formatter, since `powershell_es` doesn't advertise LSP
+formatting support). `<leader>f` formats on demand without saving.
+
+Autocompletion pairs brackets/quotes automatically (`nvim-autopairs`, cmp-integrated).
+
+### Auto-save
+
+`auto-save.nvim` writes the buffer automatically after a short pause in typing or on
+losing focus — no more losing work to a crash or an accidental quit. It's configured with
+`noautocmd = true` so autosaves **don't** trigger format-on-save; only an explicit `:w`
+or `<leader>f` formats.
+
+### Terminal
+
+`<C-\>` toggles a terminal in a bottom split, JetBrains-style — same key opens and closes
+it from either code or the terminal itself. Inside the terminal, `<C-h/j/k/l>` jumps
+between windows, `<Esc>` drops to terminal-normal mode.
+
+### AI (99 on Claude Code)
+
+Configured with `provider = ClaudeCodeProvider`, `model = "claude-sonnet-5"`, and
+`--effort medium` (via 99's `provider_extra_args`, not a source patch).
+
+| Key | Action |
+|---|---|
+| `<leader>9s` | Search — sends the project to Claude Code, results land as a quickfix list |
+| `<leader>9vv` | Visual — prompts for what to do with the selected code |
+| `<leader>9x` | Stop all in-flight requests |
+| `<leader>9m` | Model picker |
+| `<leader>9P` | Provider picker (capital — `<leader>9p` is intentionally left free) |
+
+See [CHANGELOG.md](./CHANGELOG.md) for what's changed since the initial commit.
