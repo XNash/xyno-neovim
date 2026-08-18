@@ -1,21 +1,17 @@
 return {
 	{
-		"rose-pine/neovim",
-		name = "rose-pine",
+		-- Not an external plugin - `dir` points at this config itself so
+		-- lazy.nvim treats it as a local, non-updatable "plugin" purely to get
+		-- lazy=false/priority ordering for a colorscheme. See
+		-- lua/config/colors/islands-dark.lua for the actual color definitions,
+		-- ported 1:1 from the user's real RustRover "Islands Dark" scheme.
+		"islands-dark",
+		dir = vim.fn.stdpath("config"),
+		name = "islands-dark",
 		lazy = false,
 		priority = 1000,
 		config = function()
-			vim.cmd.colorscheme("rose-pine")
-
-			-- rose-pine's own DiagnosticVirtualText* groups set fg == bg (with a
-			-- blend), which makes the diagnostic message text render invisible -
-			-- same color as its own background. Its DiagnosticSign* groups already
-			-- correctly link to the fg-only Diagnostic* groups; extend that same
-			-- fix to the virtual text groups so inline error/warning text is
-			-- actually readable.
-			for _, sev in ipairs({ "Error", "Warn", "Info", "Hint", "Ok" }) do
-				vim.api.nvim_set_hl(0, "DiagnosticVirtualText" .. sev, { link = "Diagnostic" .. sev })
-			end
+			require("config.colors.islands-dark").setup()
 		end,
 	},
 

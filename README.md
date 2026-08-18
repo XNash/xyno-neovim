@@ -14,6 +14,9 @@ Leader key is `<Space>`.
 - `lua/config/keymaps.lua` — non-plugin-specific keymaps
 - `lua/config/lazy.lua` — lazy.nvim bootstrap
 - `lua/config/plugins/*.lua` — one file per plugin or tightly related group
+- `lua/config/colors/islands-dark.lua` — the colorscheme, ported from RustRover's
+  "Islands Dark" scheme; loaded via a local (non-cloned) `lazy.nvim` spec in
+  `lua/config/plugins/misc.lua`
 
 ## Requirements
 

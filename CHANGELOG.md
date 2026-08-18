@@ -4,6 +4,28 @@ All notable changes to this config are documented here.
 
 ## [Unreleased]
 
+### Changed
+- **Colorscheme: `rose-pine` → `islands-dark`, ported directly from the user's real
+  RustRover "Islands Dark" scheme.** "Islands" itself is JetBrains' 2025 UI-chrome
+  redesign (rounded corners, panel spacing) — not a distinct syntax palette — confirmed
+  by checking JetBrains' own announcement post, which describes only layout changes and
+  publishes no color values. The actual editor colors are still Darcula-derived
+  (`parent_scheme="Darcula"` in the exported file). Rather than guess at hex values, the
+  user exported their scheme from RustRover (Settings → Editor → Color Scheme →
+  Export → `.icls`) and every color in `lua/config/colors/islands-dark.lua` is read
+  directly from that file's real hex values — background `#191a1c`, foreground `#bcbec4`,
+  keywords `#cf8e6d`, strings `#6aab73`, numbers `#2aacb8`, functions `#56a8f5`,
+  constants/fields `#c77dbb`, etc. Replaces `rose-pine/neovim` entirely (dropped from
+  `lazy-lock.json`); loaded as a local, non-cloned `lazy.nvim` spec (`dir =
+  vim.fn.stdpath("config")`) rather than an external plugin, since it's a one-off port
+  specific to this exported theme, not a general-purpose published colorscheme. Verified:
+  confirmed `Normal`'s fg/bg resolve to the exact source hex values byte-for-byte, and
+  re-ran the same lualine per-mode color-differentiation check from the earlier
+  statusline work against the new palette (still passes — `lualine_a_normal` /
+  `_insert` / `_visual` all resolve to distinct backgrounds under the new colors).
+  `DiagnosticVirtualText*` groups explicitly link to their base `Diagnostic*` groups from
+  the start, avoiding the fg==bg invisibility bug rose-pine had.
+
 ### Added
 - `lualine.nvim` for a real statusline mode indicator. Previously there was no statusline
   plugin at all — the "mode name at the bottom" the user was seeing was Neovim's own
