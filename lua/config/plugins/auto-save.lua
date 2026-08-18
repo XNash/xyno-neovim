@@ -15,22 +15,33 @@ return {
 		-- wrap vim.cmd narrowly: only for the exact command string it builds
 		-- internally, send didSave ourselves right after the real (synchronous)
 		-- write completes - correctly ordered, no debounce-timing races.
+		--
+		-- vim.cmd is a callable TABLE (supports both vim.cmd("...") and dot-call
+		-- forms like vim.cmd.write()/vim.cmd.help()) - replacing it outright
+		-- with a plain function breaks every dot-call use of it throughout
+		-- Neovim's runtime and every other plugin (this broke lazy.nvim's help
+		-- viewer in practice). Use a proxy that forwards dot-access to the real
+		-- vim.cmd untouched via __index, and only intercepts the plain call
+		-- form via __call.
 		local real_cmd = vim.cmd
 		---@diagnostic disable-next-line: duplicate-set-field
-		vim.cmd = function(command)
-			local is_autosave_write = type(command) == "string" and command:match("^noautocmd .*silent! w")
-			local result = real_cmd(command)
-			if is_autosave_write then
-				for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
-					if client:supports_method("textDocument/didSave") then
-						client:notify("textDocument/didSave", {
-							textDocument = { uri = vim.uri_from_bufnr(0) },
-						})
+		vim.cmd = setmetatable({}, {
+			__index = real_cmd,
+			__call = function(_, command)
+				local is_autosave_write = type(command) == "string" and command:match("^noautocmd .*silent! w")
+				local result = real_cmd(command)
+				if is_autosave_write then
+					for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
+						if client:supports_method("textDocument/didSave") then
+							client:notify("textDocument/didSave", {
+								textDocument = { uri = vim.uri_from_bufnr(0) },
+							})
+						end
 					end
 				end
-			end
-			return result
-		end
+				return result
+			end,
+		})
 
 		require("auto-save").setup({
 			enabled = true,
