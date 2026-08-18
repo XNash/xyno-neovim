@@ -60,6 +60,9 @@ version of the plugin no longer supports).
   that supports them
 - Rust diagnostics run through **clippy**, not plain `cargo check`
   (`rust-analyzer.check.command = "clippy"`)
+- A 💡 sign (`nvim-lightbulb`) appears in the gutter whenever a code action is available
+  at the cursor — quick fixes, auto-imports, suggestions — so you know when `<leader>vca`
+  has something to offer instead of checking blind.
 
 | Key | Action |
 |---|---|
@@ -70,6 +73,15 @@ version of the plugin no longer supports).
 | `<leader>vca` | Code action |
 | `<leader>vrr` | References |
 | `<leader>vrn` | Rename |
+
+**Linting**: clippy (Rust), `eslint` (JS/TS — see note below), PSScriptAnalyzer
+(PowerShell, via `powershell_es`), and Dart's built-in analyzer all run as real-time LSP
+diagnostics, no separate lint command needed.
+
+> **ESLint note**: `eslint` resolves ESLint from the **project's own** `node_modules` —
+> it won't lint anything without a real local `eslint` install and a config file
+> (`eslint.config.js` for flat config, or a legacy `.eslintrc.*`) in that project. It's
+> not a global linter.
 
 ### Formatting
 
