@@ -41,15 +41,32 @@ This config physically lives at `<OneDrive>\cross_device_configs\neovim`, not at
 junction** (`%LOCALAPPDATA%\nvim` → the OneDrive folder) — junctions are used instead of
 symlinks because they don't require admin rights or Developer Mode.
 
-**On a new Windows device**, once OneDrive has finished syncing this folder locally, run:
+### New device (clean machine or replacing an existing config)
+
+From an **elevated** PowerShell (Run as Administrator):
 
 ```powershell
-& "$env:OneDrive\cross_device_configs\neovim\setup-onedrive-link.ps1"
+irm https://raw.githubusercontent.com/XNash/xyno-neovim/master/bootstrap-device.ps1 | iex
 ```
 
-Safe to re-run — it no-ops if already linked. Only the config itself syncs this way;
-`nvim-data` (installed plugins, Mason tools, undo history) stays local per device and
-rebuilds automatically the first time you launch Neovim (`lazy.nvim` bootstraps it).
+This runs straight from GitHub, so it works even before OneDrive/git/anything else is
+installed. It checks for and installs everything this config needs — Git, ripgrep,
+Node.js, Rust (rustup), a C compiler (for Treesitter parser builds), Neovim, the Claude
+Code CLI, the Flutter SDK (downloaded and extracted directly — no winget package exists
+for it), the `harpoon`/`99` local plugin clones, PATH entries, and finally the config link
+itself, then pre-installs all plugins (`Lazy sync`) so the first real launch is instant.
+Every step is idempotent — safe to re-run, including after a partial failure (e.g. a
+network hiccup partway through).
+
+If an existing `%LOCALAPPDATA%\nvim` is found that isn't already this link, it **asks
+before touching it** and backs it up (`nvim.bak.<timestamp>`) rather than overwriting
+silently.
+
+Two things it deliberately does not automate, since they're credential/GUI flows: signing
+in to OneDrive, and `claude auth login`. It detects both and tells you exactly what to do.
+
+Only the config itself syncs via OneDrive; `nvim-data` (installed plugins, Mason tools,
+undo history) stays local per device.
 
 ## Features
 
