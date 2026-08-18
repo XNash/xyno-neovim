@@ -5,6 +5,42 @@ All notable changes to this config are documented here.
 ## [Unreleased]
 
 ### Changed
+- **`setup-onedrive-link.ps1` replaced by `bootstrap-device.ps1` — a full autonomous
+  device bootstrap, not just a link script.** Meant to be run from an elevated shell
+  directly off GitHub (`irm .../bootstrap-device.ps1 | iex`) on a clean machine, or one
+  with an existing config to replace. Every dependency this config actually needs is
+  installed if missing (checked against this real dev machine's actual installed state,
+  not guessed): Git, ripgrep, Node.js, Rust (rustup), a C compiler (`BrechtSanders.WinLibs`
+  — the actual gcc this machine uses for Treesitter parser builds, not MSVC), Neovim, and
+  the Claude Code CLI, all via `winget`; the Flutter SDK via direct download (no winget
+  package exists for it — fetched from Flutter's own `releases_windows.json` manifest,
+  extracted to `C:\flutter-sdk`, matching how it's actually installed here); the
+  `harpoon`/`99` local plugin clones; the PATH entries winget/rustup don't register
+  automatically (`.cargo\bin`, the WinLibs `mingw64\bin`, `flutter-sdk\bin`); winget itself
+  if even that's missing; and finally the OneDrive link, followed by a headless
+  `Lazy! sync` so plugins are ready before the first real launch. Every step is
+  independently idempotent (checked via `Get-Command`/`Test-Path` before acting) so
+  re-running after a partial failure only does the remaining work.
+
+  **Now prompts before touching an existing local config** instead of silently linking
+  over it — detects a non-matching `%LOCALAPPDATA%\nvim`, asks `[y/N]`, and backs it up to
+  `nvim.bak.<timestamp>` before creating the junction if confirmed; aborts with no changes
+  if declined.
+
+  Two steps are deliberately left manual since they're credential/GUI flows that
+  shouldn't be scripted: signing in to OneDrive, and `claude auth login`.
+
+  Verified: syntax-checked via `[System.Management.Automation.Language.Parser]::ParseFile`
+  before ever running it; ran the full script end-to-end on this real machine (every
+  prerequisite already present, so every step correctly took its idempotent skip path,
+  down to the exact existing PATH entries and the already-correct junction) with zero
+  prompts and zero errors; separately tested the new overwrite-confirmation logic in
+  isolation against throwaway fake paths for both the decline path (aborts, no changes)
+  and the confirm path (backs up with the original file content verified intact, then
+  links correctly) — did not exercise this against the real config to avoid any risk to
+  it.
+
+### Changed
 - **Config now lives on OneDrive for cross-device sync**, not directly at
   `%LOCALAPPDATA%\nvim`. Moved the whole repo to
   `<OneDrive>\cross_device_configs\neovim` and replaced the original location with a
