@@ -5,6 +5,26 @@ All notable changes to this config are documented here.
 ## [Unreleased]
 
 ### Changed
+- **Config now lives on OneDrive for cross-device sync**, not directly at
+  `%LOCALAPPDATA%\nvim`. Moved the whole repo to
+  `<OneDrive>\cross_device_configs\neovim` and replaced the original location with a
+  directory junction pointing at it (junctions over symlinks: no admin rights or
+  Developer Mode needed). Neovim needs zero config changes since it still finds
+  everything at the default path it always checks — the junction is transparent to it,
+  to git, and to every tool that touched this repo throughout this whole log. `nvim-data`
+  (installed plugins, Mason tools, undo history) deliberately stays local and unsynced —
+  it's machine-specific and `lazy.nvim` rebuilds it automatically on first launch anyway.
+  Added `setup-onedrive-link.ps1` (idempotent) for creating the matching junction on
+  additional devices once OneDrive has synced the folder there; documented in the README.
+  Verified: `Move-Item` initially failed with the folder in use — root-caused to two
+  live `nvim.exe` processes plus this very session's own shell having its working
+  directory inside the folder (Windows locks a directory while any process's cwd points
+  into it, unlike Linux) — closed both and confirmed the move, junction creation, a
+  headless Neovim boot through the junction (`colors_name`/`stdpath('config')` both
+  resolve correctly), and `git status`/`git log` all working unchanged from the new
+  physical location.
+
+### Changed
 - **Colorscheme: `rose-pine` → `islands-dark`, ported directly from the user's real
   RustRover "Islands Dark" scheme.** "Islands" itself is JetBrains' 2025 UI-chrome
   redesign (rounded corners, panel spacing) — not a distinct syntax palette — confirmed
