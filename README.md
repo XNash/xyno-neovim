@@ -98,6 +98,15 @@ losing focus — no more losing work to a crash or an accidental quit. It's conf
 `noautocmd = true` so autosaves **don't** trigger format-on-save; only an explicit `:w`
 or `<leader>f` formats.
 
+### Statusline
+
+`lualine.nvim` replaces Neovim's plain `-- INSERT --` echo-area mode message with a real,
+always-visible statusline whose leftmost cell shows the current mode by name (NORMAL,
+INSERT, VISUAL, REPLACE, COMMAND, ...) and recolors itself per mode using the active
+colorscheme's own colors (`theme = "auto"`), plus git branch/diff, diagnostics count,
+filename, filetype, and cursor position. One global statusline (`globalstatus = true`)
+rather than one per split.
+
 ### Terminal
 
 `<C-\>` toggles a terminal in a bottom split, JetBrains-style — same key opens and closes

@@ -4,6 +4,25 @@ All notable changes to this config are documented here.
 
 ## [Unreleased]
 
+### Added
+- `lualine.nvim` for a real statusline mode indicator. Previously there was no statusline
+  plugin at all — the "mode name at the bottom" the user was seeing was Neovim's own
+  `showmode` echo-area message (`-- INSERT --`), which isn't colored and only redraws on
+  certain events, reading as "stuck." Configured with `theme = "auto"` (derives colors
+  from the active colorscheme's highlight groups, so it follows rose-pine without a
+  dedicated theme) and `globalstatus = true` (one statusline for the whole editor, not one
+  per split). `showmode` turned off since the statusline now covers it. Verified with real
+  evidence: confirmed lualine's per-mode highlight groups (`lualine_a_normal`,
+  `lualine_a_insert`, `lualine_a_visual`) resolve to genuinely different background colors,
+  and confirmed the rendered statusline text switches from `NORMAL` to `VISUAL` on an
+  actual mode change (`normal! v`) evaluated via `nvim_eval_statusline`. Insert-mode text
+  couldn't be verified the same way — `startinsert` doesn't perform a real mode transition
+  in headless Neovim without an attached UI (confirmed separately: `vim.fn.mode()` stays
+  `"n"` after it), the same category of headless-simulation limitation noted elsewhere in
+  this log — but the underlying mechanism (lualine's `mode` component reads
+  `vim.fn.mode()` on every redraw) is identical for all modes, so this isn't a gap in the
+  fix, just in what headless automation can simulate.
+
 ### Fixed
 - **Regression from the previous release: `vim.cmd.helptags(...)` (and any other
   dot-call form of `vim.cmd`, e.g. `vim.cmd.write()`) threw `attempt to index field
