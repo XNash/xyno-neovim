@@ -5,6 +5,25 @@ All notable changes to this config are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **Diagnostics never refreshed without a manual `:w`, even after `update_in_insert`.**
+  Root-caused with hard evidence, not guessed: `auto-save.nvim`'s `noautocmd = true`
+  (added specifically so autosaves wouldn't trigger format-on-save) suppresses *all*
+  autocmds during the write — including the LSP client's own `BufWritePost`-triggered
+  `textDocument/didSave`, which rust-analyzer's on-save diagnostic refresh
+  (`check.command = "clippy"`) depends on. Confirmed directly: a `noautocmd write` sends
+  zero LSP notifications; a normal `write` sends `didSave`. Also confirmed the rest of
+  the pipeline was fine along the way - `didChange` fires correctly on every edit,
+  document sync is correct (verified via `hover` reflecting brand-new code within
+  seconds), and Neovim's own pull-diagnostic auto-refresh is wired automatically on
+  attach - the gap was specifically the missing `didSave`.
+
+  Fixed in `auto-save.lua` by wrapping `vim.cmd` narrowly: only for the exact command
+  string `auto-save.nvim` builds internally, manually send `textDocument/didSave` right
+  after the real (synchronous) write completes - correctly ordered, no vendored plugin
+  patched, format-on-save still correctly skipped for autosaves. Verified end-to-end
+  with zero manual saves involved: typed an error, waited for autosave's own debounce
+  cycle, diagnostic appeared in ~1.5s.
+
 - **Diagnostic virtual text was rendering invisible.** rose-pine's own
   `DiagnosticVirtualText{Error,Warn,Info,Hint,Ok}` groups set `fg == bg` (with a blend),
   so the inline error/warning message text was the same color as its own background —
