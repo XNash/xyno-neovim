@@ -1,6 +1,6 @@
 return {
 	"okuuva/auto-save.nvim",
-	event = { "InsertLeave", "TextChanged" },
+	event = { "InsertLeave", "TextChanged", "TextChangedI" },
 	config = function()
 		-- noautocmd (below) skips BufWritePre/BufWritePost for autosaves so
 		-- conform's format-on-save doesn't fire on every debounced autosave -
@@ -37,7 +37,11 @@ return {
 			noautocmd = true,
 			trigger_events = {
 				immediate_save = { "BufLeave", "FocusLost", "QuitPre", "VimSuspend" },
-				defer_save = { "InsertLeave", "TextChanged" },
+				-- TextChanged only fires for edits made OUTSIDE insert mode; its
+				-- insert-mode counterpart is TextChangedI. Without it, the debounced
+				-- save (and the didSave notify above that rides on it) never fires
+				-- while still actively typing - only once you leave insert mode.
+				defer_save = { "InsertLeave", "TextChanged", "TextChangedI" },
 				cancel_deferred_save = { "InsertEnter" },
 			},
 			debounce_delay = 1000,

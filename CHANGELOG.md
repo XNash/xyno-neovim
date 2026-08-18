@@ -5,6 +5,18 @@ All notable changes to this config are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **Still needed to leave insert mode for the didSave fix (above) to kick in.**
+  `auto-save.nvim`'s `defer_save` trigger events were `{"InsertLeave", "TextChanged"}` -
+  but `TextChanged` only fires for edits made *outside* insert mode; its insert-mode
+  counterpart is `TextChangedI`, which was missing. So the debounced save (and the
+  `didSave` notify riding on it) never fired while actively typing, only once `Esc` was
+  pressed. Added `TextChangedI` to both the plugin's lazy-load `event` and
+  `defer_save`. The debounce implementation cancels and reschedules its timer on every
+  trigger (confirmed by reading `auto-save.nvim`'s own source), so this doesn't cause a
+  save flood while typing - it still only fires ~1s after you *stop*, just without
+  needing a mode switch first. Verified end-to-end with `InsertLeave` never fired at
+  all in the test: diagnostic appeared in ~1.5s from `TextChangedI` alone.
+
 - **Diagnostics never refreshed without a manual `:w`, even after `update_in_insert`.**
   Root-caused with hard evidence, not guessed: `auto-save.nvim`'s `noautocmd = true`
   (added specifically so autosaves wouldn't trigger format-on-save) suppresses *all*
