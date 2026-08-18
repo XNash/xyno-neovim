@@ -34,6 +34,23 @@ Two plugins are pulled from local clones rather than a git URL and expected at:
 
 Clone both before first launch.
 
+## Cross-device sync via OneDrive
+
+This config physically lives at `<OneDrive>\cross_device_configs\neovim`, not at
+`%LOCALAPPDATA%\nvim`. Neovim still finds it at the default path via a **directory
+junction** (`%LOCALAPPDATA%\nvim` → the OneDrive folder) — junctions are used instead of
+symlinks because they don't require admin rights or Developer Mode.
+
+**On a new Windows device**, once OneDrive has finished syncing this folder locally, run:
+
+```powershell
+& "$env:OneDrive\cross_device_configs\neovim\setup-onedrive-link.ps1"
+```
+
+Safe to re-run — it no-ops if already linked. Only the config itself syncs this way;
+`nvim-data` (installed plugins, Mason tools, undo history) stays local per device and
+rebuilds automatically the first time you launch Neovim (`lazy.nvim` bootstraps it).
+
 ## Features
 
 ### Navigation
