@@ -94,6 +94,16 @@ return {
 				["<C-n>"] = cmp.mapping.select_next_item(cmp_select),
 				["<C-y>"] = cmp.mapping.confirm({ select = true }),
 				["<C-Space>"] = cmp.mapping.complete(),
+				-- Tab confirms the selected suggestion, same as <C-y>, but only
+				-- when the completion menu is actually open - otherwise it falls
+				-- through to normal Tab behavior (indent, snippet jump, etc.).
+				["<Tab>"] = cmp.mapping(function(fallback)
+					if cmp.visible() then
+						cmp.confirm({ select = true })
+					else
+						fallback()
+					end
+				end, { "i", "s" }),
 			}),
 			sources = cmp.config.sources({
 				{ name = "nvim_lsp" },

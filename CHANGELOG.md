@@ -5,6 +5,27 @@ All notable changes to this config are documented here.
 ## [Unreleased]
 
 ### Fixed
+- **Regression from the previous release: `vim.cmd.helptags(...)` (and any other
+  dot-call form of `vim.cmd`, e.g. `vim.cmd.write()`) threw `attempt to index field
+  'cmd' (a function value)`.** The `didSave` fix in `auto-save.lua` replaced
+  `vim.cmd` outright with a plain function to intercept its string-call form -
+  but `vim.cmd` is a callable *table* that also supports dot-access
+  (`vim.cmd.write()`, `vim.cmd.help()`, etc.), and a plain function has no fields
+  to index. This broke lazy.nvim's own periodic doc-update routine
+  (`lazy/help.lua:43: vim.cmd.helptags(...)`) in practice, visibly, in a live
+  session. Fixed with a proper `setmetatable` proxy: `__index` forwards dot-access
+  to the untouched original `vim.cmd`, `__call` intercepts only the plain
+  string-call form. Verified against the exact failing call
+  (`vim.cmd.helptags(...)`) plus a couple other dot-call forms, and re-verified
+  both the `didSave` notification and the format-on-save skip still work
+  unchanged - no regression on the fix this was fixing.
+
+### Added
+- `<Tab>` now confirms the selected completion item, same as `<C-y>` - but only
+  when the completion menu is actually open; otherwise it falls through to
+  normal `Tab` behavior. Standard `cmp.mapping()` + `fallback()` pattern.
+
+### Fixed
 - **Still needed to leave insert mode for the didSave fix (above) to kick in.**
   `auto-save.nvim`'s `defer_save` trigger events were `{"InsertLeave", "TextChanged"}` -
   but `TextChanged` only fires for edits made *outside* insert mode; its insert-mode
