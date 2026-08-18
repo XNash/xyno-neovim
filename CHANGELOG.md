@@ -5,6 +5,24 @@ All notable changes to this config are documented here.
 ## [Unreleased]
 
 ### Added
+- `nvim-lightbulb` — shows a 💡 sign in the gutter whenever a code action (quick fix,
+  suggestion, auto-import, etc.) is available at the cursor, same idea as JetBrains'
+  lightbulb icon. `<leader>vca` already triggered code actions; this makes it visible
+  *when* one exists instead of needing to check manually. Verified end-to-end: set up a
+  real local ESLint install + flat config in a test project, confirmed the LSP itself
+  flags a real lint violation (`source=eslint code=eqeqeq`), confirmed a code action is
+  genuinely offered for it, and confirmed the lightbulb sign gets placed on that exact
+  line.
+
+### Verified (no code change)
+- ESLint (`vscode-eslint-language-server` via Mason) resolves ESLint from the **project's
+  own** `node_modules` — it does nothing without a real local ESLint install and a config
+  file (flat config or legacy). This wasn't previously tested end-to-end; confirmed now
+  with a real violation caught through the LSP, not just via the CLI.
+
+## [0.2.0]
+
+### Added
 - `auto-save.nvim` (`okuuva` fork — the original `Pocco81/auto-save.nvim` has been
   unmaintained since 2024-05) for RustRover-style background auto-save. Configured with
   `noautocmd = true` so debounced autosaves don't also trigger format-on-save; only a
