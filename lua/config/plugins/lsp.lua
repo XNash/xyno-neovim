@@ -121,6 +121,10 @@ return {
 			},
 			underline = true,
 			severity_sort = true,
+			-- Neovim's default (false) only redraws diagnostics on leaving insert
+			-- mode, which reads as "only updates when I :w" since Esc always
+			-- precedes :w anyway. RustRover-style continuous feedback needs this on.
+			update_in_insert = true,
 			float = {
 				focusable = false,
 				style = "minimal",

@@ -4,6 +4,24 @@ All notable changes to this config are documented here.
 
 ## [Unreleased]
 
+### Fixed
+- **Diagnostic virtual text was rendering invisible.** rose-pine's own
+  `DiagnosticVirtualText{Error,Warn,Info,Hint,Ok}` groups set `fg == bg` (with a blend),
+  so the inline error/warning message text was the same color as its own background —
+  the extmark was genuinely being drawn (confirmed via `nvim_buf_get_extmarks`), it just
+  couldn't be seen. Its `DiagnosticSign*` groups already correctly link to the fg-only
+  `Diagnostic*` groups; extended that same pattern to the virtual text groups in
+  `misc.lua`, after the colorscheme loads.
+- **Diagnostics appeared to require `:w` to update.** Neovim's `update_in_insert`
+  defaults to `false` (diagnostics only redraw on `InsertLeave`, not while still typing)
+  — since `Esc` always precedes `:w`, it read as "only updates on save" when it was
+  really "only updates on leaving insert mode." Set `update_in_insert = true` in
+  `lsp.lua` for RustRover-style continuous feedback while actively typing. Confirmed
+  correct against Neovim's own documented semantics for this option; the live
+  while-still-in-insert-mode behavior itself couldn't be synthetically verified in
+  headless automation (same category of limitation as simulated keypresses elsewhere in
+  this project), so this one is verified by mechanism/docs rather than a headless repro.
+
 ### Added
 - `nvim-lightbulb` — shows a 💡 sign in the gutter whenever a code action (quick fix,
   suggestion, auto-import, etc.) is available at the cursor, same idea as JetBrains'
